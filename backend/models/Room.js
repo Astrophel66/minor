@@ -1,9 +1,17 @@
-const mongoose = require('mongoose');
+// backend/models/Room.js
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-const roomSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  code: { type: String, unique: true, required: true },
-  users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
-}, { timestamps: true });
+const Room = sequelize.define('Room', {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  code: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: false,
+  },
+});
 
-module.exports = mongoose.model('Room', roomSchema);
+module.exports = Room;

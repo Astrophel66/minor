@@ -1,26 +1,31 @@
-// app.js
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.status(401).json({ message: 'No token provided' });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: 'Invalid token' });
+    req.user = user;
+    next();
+  });
+}
+
+module.exports = authenticateToken;
+// backend/app.js
 const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
-
-// Load environment variables
-dotenv.config();
-
-// Connect to DB
-connectDB();
-
-// Create app
 const app = express();
+const cors = require('cors');
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/rooms', require('./routes/room'));
-app.use('/api/tasks', require('./routes/task'));
-app.use('/api/timer', require('./routes/timer'));
+// Example base route
+app.get('/', (req, res) => {
+  res.send('Study Room Backend API is working');
+});
 
 module.exports = app;

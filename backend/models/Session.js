@@ -1,11 +1,20 @@
-const mongoose = require('mongoose');
+// backend/models/Session.js
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-const sessionSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  room: { type: mongoose.Schema.Types.ObjectId, ref: 'Room' },
-  startTime: { type: Date, required: true },
-  endTime: { type: Date, required: true },
-  duration: { type: Number }, // in minutes or seconds
-}, { timestamps: true });
+const Session = sequelize.define('Session', {
+  startTime: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  endTime: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  durationMinutes: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+});
 
-module.exports = mongoose.model('Session', sessionSchema);
+module.exports = Session;
