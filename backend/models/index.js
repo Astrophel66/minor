@@ -5,7 +5,7 @@ const Room = require('./Room');
 const Task = require('./Task');
 const Session = require('./Session');
 
-// Define associations (example)
+// Define associations
 User.hasMany(Task);
 Task.belongsTo(User);
 
@@ -17,6 +17,11 @@ Task.belongsTo(Room);
 
 Session.belongsTo(User);
 Session.belongsTo(Room);
+
+// Sync models with the database (development only)
+sequelize.sync({ alter: true })
+    .then(() => console.log('Database synced'))
+    .catch(err => console.error('Error syncing database:', err));
 
 module.exports = {
   sequelize,

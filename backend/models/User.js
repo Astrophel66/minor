@@ -16,6 +16,9 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false
   }
+}, {
+  tableName: 'users',  // Force table name to lowercase 'users'
+  timestamps: true     // Optional: Adds createdAt and updatedAt fields
 });
 
 module.exports = User;
