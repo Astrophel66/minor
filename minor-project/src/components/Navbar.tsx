@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-  Search,
-  Bell,
-  User,
+import { 
+  Search, 
+  Bell, 
+  User, 
   Menu,
   X,
   Users,
@@ -22,8 +22,6 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const username = localStorage.getItem('username') || 'User';
-
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Collaborate', path: '/collaborate', icon: MessageSquare },
@@ -34,8 +32,6 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
     navigate('/');
   };
 
@@ -45,10 +41,10 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-amber-600 to-teal-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-amber-700 to-teal-700 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               StudySpace
             </span>
           </Link>
@@ -63,7 +59,7 @@ const Navbar = () => {
                   to={item.path}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-gradient-to-r from-amber-600 to-teal-600 text-white'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
@@ -73,7 +69,7 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* Right Side */}
+          {/* Right Side - Search, Notifications, Profile */}
           <div className="flex items-center space-x-4">
             {/* Search */}
             <div className="hidden sm:block relative">
@@ -81,7 +77,7 @@ const Navbar = () => {
               <input
                 type="text"
                 placeholder="Search..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm w-64"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm w-64"
               />
             </div>
 
@@ -97,10 +93,10 @@ const Navbar = () => {
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-teal-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
                   <User className="w-4 h-4 text-white" />
                 </div>
-                <span className="hidden sm:block text-sm font-medium">{username}</span>
+                <span className="hidden sm:block text-sm font-medium">John Doe</span>
               </button>
 
               {isProfileOpen && (
@@ -144,7 +140,7 @@ const Navbar = () => {
                     onClick={() => setIsMenuOpen(false)}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                       isActive
-                        ? 'bg-gradient-to-r from-amber-600 to-teal-600 text-white'
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
@@ -154,13 +150,14 @@ const Navbar = () => {
                 );
               })}
             </div>
+            {/* Mobile Search */}
             <div className="mt-4 px-4">
               <div className="relative">
                 <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 />
               </div>
             </div>
