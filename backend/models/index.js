@@ -1,32 +1,29 @@
-// backend/models/index.js
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
-const User = require('./User');
-const Room = require('./Room');
-const Task = require('./Task');
-const Session = require('./Session');
+
+const db = {};
+
+// Load models
+db.User = require('./User')(sequelize, DataTypes);
+db.Room = require('./Room')(sequelize, DataTypes);
+db.Task = require('./Task')(sequelize, DataTypes);
+db.Session = require('./Session')(sequelize, DataTypes);
 
 // Define associations
-User.hasMany(Task);
-Task.belongsTo(User);
+db.User.hasMany(db.Task);
+db.Task.belongsTo(db.User);
 
-User.belongsToMany(Room, { through: 'UserRooms' });
-Room.belongsToMany(User, { through: 'UserRooms' });
+db.User.belongsToMany(db.Room, { through: 'UserRooms' });
+db.Room.belongsToMany(db.User, { through: 'UserRooms' });
 
-Room.hasMany(Task);
-Task.belongsTo(Room);
+db.Room.hasMany(db.Task);
+db.Task.belongsTo(db.Room);
 
-Session.belongsTo(User);
-Session.belongsTo(Room);
+db.Session.belongsTo(db.User, { foreignKey: { allowNull: false } });
+db.Session.belongsTo(db.Room, { foreignKey: { allowNull: true } }); // Optional, depending on your session logic
 
-// Sync models with the database (development only)
-sequelize.sync({ alter: true })
-    .then(() => console.log('Database synced'))
-    .catch(err => console.error('Error syncing database:', err));
+// Export
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
 
-module.exports = {
-  sequelize,
-  User,
-  Room,
-  Task,
-  Session,
-};
+module.exports = db;

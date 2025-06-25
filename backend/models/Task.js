@@ -1,20 +1,19 @@
-// backend/models/Task.js
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+module.exports = (sequelize, DataTypes) => {
+  const Task = sequelize.define('Task', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    completed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    }
+  }, {});
 
-const Task = sequelize.define('Task', {
-  title: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  isCompleted: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
-  dueDate: {
-    type: DataTypes.DATE,
-    allowNull: true,
-  },
-});
-
-module.exports = Task;
+  return Task;
+};
