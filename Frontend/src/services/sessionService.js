@@ -1,4 +1,4 @@
-import API from './api';  // Assuming your api.js has Axios instance with token logic
+import API from './api'; 
 
 export const startSession = async (startTime, endTime, durationMinutes) => {
   const res = await API.post('/sessions/start', {

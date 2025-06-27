@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   Search,
   Bell,
@@ -21,8 +22,9 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+const { user, logout } = useAuth(); 
 
-  const username = localStorage.getItem('username') || 'User';
+  const username = user?.username || 'User';
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
@@ -33,17 +35,16 @@ const Navbar = () => {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    navigate('/');
+    if (window.confirm('Are you sure you want to logout?')) {
+      logout(); // Calls logout from AuthContext
+      navigate('/'); // Redirects to Landing Page after logout
+    }
   };
 
   return (
     <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <Link to="/dashboard" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-amber-600 to-teal-600 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-white" />
@@ -53,7 +54,6 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
@@ -73,9 +73,7 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* Right Side */}
           <div className="flex items-center space-x-4">
-            {/* Search */}
             <div className="hidden sm:block relative">
               <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
               <input
@@ -85,17 +83,15 @@ const Navbar = () => {
               />
             </div>
 
-            {/* Notifications */}
-            <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+            <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
               <Bell className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
 
-            {/* Profile Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
               >
                 <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-teal-500 rounded-full flex items-center justify-center">
                   <User className="w-4 h-4 text-white" />
@@ -106,31 +102,27 @@ const Navbar = () => {
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
                   <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    <Settings className="w-4 h-4 inline mr-2" />
-                    Settings
+                    <Settings className="w-4 h-4 inline mr-2" /> Settings
                   </a>
                   <button
                     onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    <LogOut className="w-4 h-4 inline mr-2" />
-                    Logout
+                    <LogOut className="w-4 h-4 inline mr-2" /> Logout
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="space-y-2">

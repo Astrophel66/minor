@@ -1,37 +1,33 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const dotenv = require('dotenv');
+const db = require('./config/db');
+const models = require('./models');
 
-const { sequelize } = require('./models');
-const routes = require('./routes');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const roomRoutes = require('./routes/room');
+const taskRoutes = require('./routes/task');
+const timerRoutes = require('./routes/timer');
+const sessionRoutes = require('./routes/sessionRoutes');
 
+dotenv.config();
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// All routes mounted with /api prefix
-app.use('/api/auth', routes.authRoutes);
-app.use('/api/rooms', routes.roomRoutes);
-app.use('/api/tasks', routes.taskRoutes);
-app.use('/api/timers', routes.timerRoutes);
-app.use('/api/users', routes.userRoutes);
-app.use('/api/sessions', routes.sessionRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/timer', timerRoutes);
+app.use('/api/sessions', sessionRoutes);
 
-// Health Check Route
-app.get('/', (req, res) => {
-  res.send('Study Room Backend API is working');
-});
+// DB Sync - ensure tables exist
+models.sequelize.sync()
+  .then(() => console.log('Database synced'))
+  .catch(err => console.error('DB sync error:', err));
 
-// Database Sync
-sequelize.sync({ alter: true })
-  .then(() => console.log("✅ Database synced"))
-  .catch(err => console.error("❌ Sync failed:", err));
-
-// Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

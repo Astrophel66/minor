@@ -1,7 +1,6 @@
 const { Room, User } = require('../models');
 const { nanoid } = require('nanoid');
 
-// Create a new room
 exports.createRoom = async (req, res) => {
   try {
     const code = nanoid(6);
@@ -11,7 +10,7 @@ exports.createRoom = async (req, res) => {
       code
     });
 
-    const user = await User.findByPk(req.user.userId);
+    const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     await room.addUser(user);
@@ -50,10 +49,11 @@ exports.joinRoom = async (req, res) => {
 // Get all rooms the user is part of
 exports.getUserRooms = async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.userId, {
+    const user = await User.findByPk(req.user.id, {
       include: Room
     });
-
+if (!user) return res.status(404).json({ message: 'User not found' });
+ console.log('✅ User Rooms:', user.Rooms);  
     res.json(user.Rooms);
   } catch (err) {
     console.error(err);

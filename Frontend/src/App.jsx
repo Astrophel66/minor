@@ -21,41 +21,17 @@ function App() {
   }
 
   return (
-    <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route
-          path="/login"
-          element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />}
-        />
-        <Route
-          path="/register"
-          element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/dashboard" replace />}
-        />
+        <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/register" element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/dashboard" replace />} />
 
-        {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/notes"
-          element={isAuthenticated ? <NotesPage /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/tasks"
-          element={isAuthenticated ? <TasksPage /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/collaborate"
-          element={isAuthenticated ? <CollaboratePage /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/study-room"
-          element={isAuthenticated ? <StudyRoomPage /> : <Navigate to="/login" replace />}
-        />
+        <Route path="/dashboard" element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" replace />} />
+        <Route path="/notes" element={isAuthenticated ? <NotesPage /> : <Navigate to="/login" replace />} />
+        <Route path="/tasks" element={isAuthenticated ? <TasksPage /> : <Navigate to="/login" replace />} />
+        <Route path="/collaborate" element={isAuthenticated ? <CollaboratePage /> : <Navigate to="/login" replace />} />
+        <Route path="/study-room" element={isAuthenticated ? <StudyRoomPage /> : <Navigate to="/login" replace />} />
       </Routes>
-    </Router>
   );
 }
 

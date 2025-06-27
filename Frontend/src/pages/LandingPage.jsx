@@ -30,21 +30,6 @@ const LandingPage = () => {
       title: 'Study Rooms',
       description: 'Create public or private study spaces for group sessions or solo focus time.'
     },
-    {
-      icon: FolderOpen,
-      title: 'Integration Ready',
-      description: 'Connect with Notion, Google Drive, and other productivity tools.'
-    },
-    {
-      icon: Smartphone,
-      title: 'Cross-Platform',
-      description: 'Access your study space from any device - mobile, tablet, or desktop.'
-    },
-    {
-      icon: UserCheck,
-      title: 'Accountability Partners',
-      description: 'Stay motivated with study buddies and progress tracking.'
-    }
   ];
 
   return (

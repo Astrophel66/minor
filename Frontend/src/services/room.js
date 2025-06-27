@@ -1,5 +1,7 @@
 export const createRoom = async (name) => {
-  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user'));
+  const token = user?.token;
+
   const res = await fetch('http://localhost:5000/api/rooms/create', {
     method: 'POST',
     headers: {
@@ -17,7 +19,9 @@ export const createRoom = async (name) => {
 };
 
 export const joinRoom = async (code) => {
-  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user'));
+  const token = user?.token;
+
   const res = await fetch(`http://localhost:5000/api/rooms/join/${code}`, {
     method: 'POST',
     headers: {
@@ -33,7 +37,9 @@ export const joinRoom = async (code) => {
 };
 
 export const getMyRooms = async () => {
-  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user'));
+  const token = user?.token;
+  
   const res = await fetch('http://localhost:5000/api/rooms/my-rooms', {
     headers: {
       'Authorization': `Bearer ${token}`
