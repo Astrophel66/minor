@@ -8,6 +8,11 @@ import NotesPage from './pages/NotesPage';
 import TasksPage from './pages/TasksPage';
 import CollaboratePage from './pages/CollaboratePage';
 import StudyRoomPage from './pages/StudyRoomPage';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
+<ToastContainer position="top-center" autoClose={3000} />
 
 function App() {
   const { isAuthenticated, authLoading } = useAuth();
@@ -34,5 +39,5 @@ function App() {
       </Routes>
   );
 }
-
+<ToastContainer position="top-center" autoClose={3000} />
 export default App;

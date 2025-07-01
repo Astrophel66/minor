@@ -21,4 +21,6 @@ router.get('/:id', auth, roomController.getRoomDetails);
 // Get shareable link for a room
 router.get('/shareable-link/:id', auth, roomController.getShareableLink);
 
+router.delete('/:id', auth, roomController.deleteRoom);
+
 module.exports = router;

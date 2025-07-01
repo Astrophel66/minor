@@ -24,3 +24,8 @@ export const getShareableLink = async (id) => {
   const res = await API.get(`/rooms/shareable-link/${id}`);
   return res.data;
 };
+
+export const deleteRoom = async (id) => {
+  const res = await API.delete(`/rooms/${id}`);
+  return res.data;
+};

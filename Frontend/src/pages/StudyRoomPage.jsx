@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { Plus, Users, Lock, Globe, Coffee, Zap, Copy, Check } from 'lucide-react';
+import { Plus, Users, Lock, Globe, Coffee, Zap, Copy, Check, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { createRoom, joinRoom, getMyRooms } from '../services/room';
+import { createRoom, joinRoom, getMyRooms, deleteRoom } from '../services/roomService';
 import { startSession } from '../services/sessionService';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const StudyRoomPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -15,7 +16,7 @@ const StudyRoomPage = () => {
   const [myRooms, setMyRooms] = useState([]);
 
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -28,11 +29,10 @@ const StudyRoomPage = () => {
   const refreshRooms = async () => {
     try {
       const rooms = await getMyRooms();
-      console.log('✅ Rooms fetched:', rooms);
       setMyRooms(rooms);
     } catch (err) {
       console.error('Error fetching rooms:', err);
-      alert('Failed to load rooms');
+      toast.error('Failed to load rooms');
     }
   };
 
@@ -43,11 +43,11 @@ const StudyRoomPage = () => {
     try {
       const room = await createRoom(roomName);
       setRoomCode(room.code);
-      console.log('Room created:', room);
+      toast.success(`Room "${room.name}" created successfully`);
       await refreshRooms();
     } catch (err) {
       console.error('Error creating room:', err);
-      alert('Failed to create room');
+      toast.error(err.response?.data?.error || 'Failed to create room');
     }
   };
 
@@ -55,14 +55,13 @@ const StudyRoomPage = () => {
     try {
       if (joinCode.trim()) {
         const room = await joinRoom(joinCode);
-        console.log('Joined room:', room);
         setJoinCode('');
-        alert(`Joined room: ${room.name}`);
+        toast.success(`Joined room: ${room.name}`);
         await refreshRooms();
       }
     } catch (err) {
       console.error('Error joining room:', err);
-      alert('Failed to join room. Check code and try again.');
+      toast.error(err.response?.data?.error || 'Failed to join room. Check code and try again.');
     }
   };
 
@@ -70,18 +69,31 @@ const StudyRoomPage = () => {
     try {
       const now = new Date();
       const later = new Date(now.getTime() + 25 * 60 * 1000);
-      const newSession = await startSession(now.toISOString(), later.toISOString(), 25);
-      console.log('Pomodoro Session started:', newSession);
-      alert(`Pomodoro session started in room ID: ${roomId}`);
+      await startSession(now.toISOString(), later.toISOString(), 25);
+      toast.success('Pomodoro session started');
     } catch (err) {
       console.error(err);
-      alert('Failed to start session');
+      toast.error('Failed to start session');
+    }
+  };
+
+  const handleDeleteRoom = async (roomId) => {
+    if (!window.confirm('Are you sure you want to delete this room?')) return;
+
+    try {
+      await deleteRoom(roomId);
+      toast.success('Room deleted successfully');
+      await refreshRooms();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to delete room');
     }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedCode(text);
+    toast.success('Room code copied to clipboard');
     setTimeout(() => setCopiedCode(''), 2000);
   };
 
@@ -140,6 +152,15 @@ const StudyRoomPage = () => {
                   >
                     Start Pomodoro
                   </button>
+                  {room.creatorId === user?.id && (
+                    <button
+                      onClick={() => handleDeleteRoom(room.id)}
+                      className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600"
+                      title="Delete Room"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

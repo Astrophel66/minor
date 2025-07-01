@@ -13,8 +13,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false
-    }
-  }, {});
-
+    },
+    creatorId: {
+  type: DataTypes.INTEGER,
+  allowNull: false
+}
+});
+ Room.associate = (models) => {
+    Room.belongsToMany(models.User, { through: 'RoomUsers' });
+  };
   return Room;
 };

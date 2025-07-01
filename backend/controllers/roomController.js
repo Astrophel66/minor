@@ -7,7 +7,8 @@ exports.createRoom = async (req, res) => {
 
     const room = await Room.create({
       name: req.body.name,
-      code
+      code,
+      creatorId: req.user.id   // Add creatorId field
     });
 
     const user = await User.findByPk(req.user.id);
@@ -105,3 +106,27 @@ exports.getShareableLink = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.deleteRoom = async (req, res) => {
+  try {
+    const roomId = req.params.id;
+    const userId = req.user.id;
+
+    const room = await Room.findByPk(roomId);
+
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+
+    if (room.creatorId !== userId) {
+      return res.status(403).json({ error: 'You are not authorized to delete this room' });
+    }
+
+    await room.destroy();
+
+    res.json({ message: 'Room deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
