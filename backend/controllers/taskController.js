@@ -20,35 +20,35 @@ exports.createTask = async (req, res) => {
     const { title, description } = req.body;
     const userId = req.user.id;
 
-    if (!title || !description) {
-      return res.status(400).json({ error: 'Title and description are required' });
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required' });
     }
 
     const task = await Task.create({
       title,
-      description,
-      UserId: userId
+      description: description || '',  // Defaults to empty string if undefined
+      UserId: userId,
     });
 
     res.status(201).json(task);
   } catch (err) {
-    console.error(err);
+    console.error('Task creation error:', err);
     res.status(500).json({ error: err.message });
   }
 };
-
 
 // Update a task
 exports.updateTask = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { title, completed } = req.body;
+    const { title, description, completed } = req.body;
     const task = await Task.findByPk(req.params.id);
 
     if (!task) return res.status(404).json({ error: 'Task not found' });
     if (task.UserId !== userId) return res.status(403).json({ error: 'Unauthorized' });
 
     if (title !== undefined) task.title = title;
+    if (description !== undefined) task.description = description;
     if (completed !== undefined) task.completed = completed;
 
     await task.save();
@@ -68,18 +68,20 @@ exports.deleteTask = async (req, res) => {
     if (task.UserId !== userId) return res.status(403).json({ error: 'Unauthorized' });
 
     await task.destroy();
-    res.json({ message: 'Task deleted' });
+    res.json({ message: 'Task deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Toggle task completed status
 exports.toggleTask = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
-    if (!task) return res.status(404).json({ error: 'Task not found' });
+    const userId = req.user.id;
+    const task = await Task.findByPk(req.params.id);
 
-    if (task.user.toString() !== req.user.id)
-      return res.status(403).json({ error: 'Unauthorized' });
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    if (task.UserId !== userId) return res.status(403).json({ error: 'Unauthorized' });
 
     task.completed = !task.completed;
     await task.save();

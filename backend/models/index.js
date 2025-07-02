@@ -1,6 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
-const { User } = require('../models');
 const db = {};
 
 // Load models
@@ -20,7 +19,7 @@ db.Room.hasMany(db.Task);
 db.Task.belongsTo(db.Room);
 
 db.Session.belongsTo(db.User, { foreignKey: { allowNull: false } });
-db.Session.belongsTo(db.Room, { foreignKey: { allowNull: true } }); // Optional, depending on your session logic
+db.Session.belongsTo(db.Room, { foreignKey: { allowNull: true } });
 
 // Export
 db.sequelize = sequelize;
