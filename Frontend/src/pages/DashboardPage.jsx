@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import { Clock, Users, Target, Award } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { getUserProfile, getDashboardStats } from '../services/userService';
 
 const DashboardPage = () => {
   const [username, setUsername] = useState('');
@@ -18,45 +20,28 @@ const DashboardPage = () => {
       return;
     }
 
-    fetch(`http://localhost:5000/api/users/${user.id}`, {
-      headers: { Authorization: `Bearer ${user.token}` },
-    })
-      .then((res) => {
-        console.log('Raw response:', res); 
-        if (res.status === 401) throw new Error('Unauthorized');
-        return res.json();
-      })
-      .then((data) => {
-        setUsername(data.username);
-        console.log('Fetched user data:', data);
-        setUsername(data.username);
-      })
-      .catch((err) => {
-        console.error('Auth failed (username fetch):', err);
-        logout();
-        navigate('/login');
-      });
+    const fetchData = async () => {
+      try {
+        const userData = await getUserProfile(user.id);
+        setUsername(userData.username);
 
-    fetch(`http://localhost:5000/api/users/dashboard-stats`, {
-      headers: { Authorization: `Bearer ${user.token}` },
-    })
-      .then((res) => {
-        if (res.status === 401) throw new Error('Unauthorized');
-        return res.json();
-      })
-      .then((data) => {
+        const statsData = await getDashboardStats();
+
         setStats([
-          { title: 'Study Hours', value: data.studyHours, icon: Clock, color: 'amber' },
-          { title: 'Active Rooms', value: data.activeRooms, icon: Users, color: 'teal' },
-          { title: 'Goals Met', value: data.goalsMet, icon: Target, color: 'emerald' },
-          { title: 'Streak Days', value: data.streakDays, icon: Award, color: 'orange' },
+          { title: 'Study Hours', value: statsData.studyHours || 0, icon: Clock, color: 'amber' },
+          { title: 'Active Rooms', value: statsData.activeRooms || 0, icon: Users, color: 'teal' },
+          { title: 'Goals Met', value: statsData.goalsMet || 0, icon: Target, color: 'emerald' },
+          { title: 'Streak Days', value: statsData.streakDays || 0, icon: Award, color: 'orange' },
         ]);
-      })
-      .catch((err) => {
-        console.error('Auth failed (stats fetch):', err);
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+        toast.error('Session expired or failed to load dashboard. Please log in again.');
         logout();
         navigate('/login');
-      });
+      }
+    };
+
+    fetchData();
   }, [isAuthenticated, user, authLoading, navigate, logout]);
 
   const colorClasses = {
