@@ -1,18 +1,21 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
-import { Users, Copy, CheckCircle, Share2, ArrowLeft } from 'lucide-react';
+import { Copy, Check, Users, User } from 'lucide-react';
 import { getRoomDetails, getShareableLink } from '../services/roomService';
 import { toast } from 'react-toastify';
-import { useAuth } from '../context/AuthContext';
+
+const generateMockAvatarColor = (index) => {
+  const colors = ["bg-red-500", "bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-purple-500"];
+  return colors[index % colors.length];
+};
 
 export default function RoomPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [room, setRoom] = useState(null);
-  const [shareLink, setShareLink] = useState('');
   const [copied, setCopied] = useState(false);
-  const { user } = useAuth();
+  const [shareLink, setShareLink] = useState('');
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -35,7 +38,6 @@ export default function RoomPage() {
   const copyCode = () => {
     navigator.clipboard.writeText(room.code);
     setCopied(true);
-    toast.success('Room code copied');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -52,63 +54,63 @@ export default function RoomPage() {
         {!room ? (
           <p className="text-gray-600">Loading room details...</p>
         ) : (
-          <>
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white p-6 rounded-lg shadow space-y-6">
+            <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">{room.name}</h1>
-              <span className={`px-3 py-1 text-sm rounded-lg ${room.type === 'public' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700'}`}>
-                {room.type === 'public' ? 'Public Room' : 'Private Room'}
+              <span
+                className={`text-sm font-medium px-2 py-0.5 rounded ${room.type === 'public' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700'}`}
+              >
+                {room.type === 'public' ? 'Public' : 'Private'}
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center space-x-2 mb-6">
+            <div className="flex items-center space-x-2">
               <p className="text-gray-700 font-mono">Code: {room.code}</p>
               <button onClick={copyCode} className="text-amber-600 hover:text-amber-700">
-                {copied ? <CheckCircle size={16} /> : <Copy size={16} />}
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
 
-            <h2 className="text-lg font-semibold mb-2 flex items-center">
-              <Users size={18} className="mr-2" /> Members
-            </h2>
+            <div>
+              <h2 className="text-lg font-semibold mb-2 flex items-center space-x-1">
+                <Users className="w-5 h-5" />
+                <span>Participants</span>
+              </h2>
 
-            <div className="space-y-2 mb-6">
               {room.Users?.length > 0 ? (
-                room.Users.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between border border-gray-200 p-3 rounded-lg bg-white">
-                    <span className="text-gray-800">{member.username}</span>
-                    <div className="flex items-center space-x-2">
-                      {member.id === room.creatorId && (
-                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Creator</span>
-                      )}
-                      {member.id === user?.id && (
-                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">You</span>
-                      )}
+                <div className="flex flex-wrap gap-3">
+                  {room.Users.map((user, index) => (
+                    <div key={user.id} className="flex items-center space-x-2">
+                      <div className={`w-8 h-8 ${generateMockAvatarColor(index)} text-white rounded-full flex items-center justify-center text-sm`}>
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{user.username}</p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               ) : (
-                <p className="text-gray-600">No members yet.</p>
+                <p className="text-gray-600">No members found.</p>
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="flex space-x-2">
               <button
                 onClick={copyLink}
-                className="flex-1 bg-gradient-to-r from-amber-600 to-teal-600 text-white py-2 rounded-lg hover:from-amber-700 hover:to-teal-700 flex items-center justify-center space-x-2"
+                className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700"
               >
-                <Share2 size={16} />
-                <span>Copy Invite Link</span>
+                Copy Invite Link
               </button>
-
               <button
                 onClick={() => navigate('/study-room')}
-                className="flex-1 border border-gray-300 py-2 rounded-lg flex items-center justify-center space-x-2"
+                className="border border-gray-300 px-4 py-2 rounded-lg"
               >
-                <ArrowLeft size={16} />
-                <span>Back to My Rooms</span>
+                Back to Study Rooms
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import JoinRoomSuccessPage from './JoinRoomSuccessPage';
+import JoinRoomSuccess from './JoinRoomSuccess';
 
 export default function JoinRoomSuccessPageWrapper() {
   const location = useLocation();
@@ -18,5 +18,5 @@ export default function JoinRoomSuccessPageWrapper() {
     return null;
   }
 
-  return <JoinRoomSuccessPage roomName={roomName} roomCode={roomCode} />;
+  return <JoinRoomSuccess roomName={roomName} roomCode={roomCode} />;
 }
