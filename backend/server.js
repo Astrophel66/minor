@@ -28,7 +28,7 @@ app.use('/api/timer', verifyToken, timerRoutes);
 app.use('/api/sessions', verifyToken, sessionRoutes);
 
 // DB Sync - ensure tables exist
-models.sequelize.sync({ force: true })
+models.sequelize.sync()
 
   .then(() => console.log('✅ Database synced'))
   .catch(err => console.error('DB sync error:', err));

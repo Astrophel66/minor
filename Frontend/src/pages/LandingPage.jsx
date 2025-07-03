@@ -18,17 +18,17 @@ const LandingPage = () => {
     {
       icon: RefreshCw,
       title: 'Real-time Collaboration',
-      description: 'Chat, share notes, and work together seamlessly with your study partners.'
+      description: ' share notes, and work together seamlessly with your study partners.'
     },
     {
       icon: Headphones,
       title: 'Customizable Environments',
-      description: 'Pomodoro timers, focus music, and ambient sounds to optimize your study sessions.'
+      description: 'Pomodoro timers to optimize your study sessions.'
     },
     {
       icon: Users,
       title: 'Study Rooms',
-      description: 'Create public or private study spaces for group sessions or solo focus time.'
+      description: 'Create study spaces for group sessions or solo focus time.'
     },
   ];
 

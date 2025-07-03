@@ -14,13 +14,19 @@ module.exports = (sequelize, DataTypes) => {
       unique: true,
       allowNull: false
     },
+    type: {
+      type: DataTypes.ENUM('public', 'private'),
+      defaultValue: 'private'
+    },
     creatorId: {
-  type: DataTypes.INTEGER,
-  allowNull: false
-}
-});
- Room.associate = (models) => {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    }
+  });
+
+  Room.associate = (models) => {
     Room.belongsToMany(models.User, { through: 'RoomUsers' });
   };
+
   return Room;
 };

@@ -32,6 +32,7 @@ const { user, logout } = useAuth();
     { name: 'Tasks', path: '/tasks', icon: CheckSquare },
     { name: 'Notes', path: '/notes', icon: FileText },
     { name: 'Study Room', path: '/study-room', icon: Video },
+    { name: 'Discover Rooms', path: '/discover', icon: Users },
   ];
 
   const handleLogout = () => {

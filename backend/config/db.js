@@ -1,4 +1,3 @@
-// backend/config/db.js
 const { Sequelize } = require('sequelize');
 require('dotenv').config();  // Load .env early
 
@@ -13,6 +12,7 @@ const sequelize = new Sequelize(
     logging: false,  // Disable SQL logging in console
   }
 );
+console.log('Connecting to DB:', process.env.DB_NAME, process.env.DB_USER, process.env.DB_HOST);
 
 sequelize.authenticate()
   .then(() => console.log('✅ Database connection established.'))

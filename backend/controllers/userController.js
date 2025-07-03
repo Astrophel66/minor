@@ -21,7 +21,8 @@ exports.getDashboardStats = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const studyHours = await Session.sum('duration', { where: { UserId: userId } }) || 0;
+    const studyMinutes = await Session.sum('duration', { where: { UserId: userId } }) || 0;
+const studyHours = (studyMinutes / 60).toFixed(2);
 
     const activeRooms = await Room.count({
       include: [{
@@ -29,8 +30,6 @@ exports.getDashboardStats = async (req, res) => {
         where: { id: userId }
       }]
     });
-
-    // TODO: Replace with real logic
     const goalsMet = await Session.count({
       where: {
         UserId: userId,

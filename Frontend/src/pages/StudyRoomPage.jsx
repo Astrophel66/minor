@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { Plus, Users, Lock, Globe, Coffee, Zap, Copy, Check, Trash2 } from 'lucide-react';
+import { Plus, Users, Lock, Globe, Copy, Check, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createRoom, joinRoom, getMyRooms, deleteRoom } from '../services/roomService';
 import { startSession } from '../services/sessionService';
@@ -10,10 +10,12 @@ import { toast } from 'react-toastify';
 const StudyRoomPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [roomName, setRoomName] = useState('');
+  const [roomType, setRoomType] = useState('private');
   const [roomCode, setRoomCode] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [copiedCode, setCopiedCode] = useState('');
   const [myRooms, setMyRooms] = useState([]);
+  const [filterType, setFilterType] = useState('all');
 
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
@@ -41,7 +43,7 @@ const StudyRoomPage = () => {
     if (!roomName.trim()) return;
 
     try {
-      const room = await createRoom(roomName);
+      const room = await createRoom(roomName, roomType);
       setRoomCode(room.code);
       toast.success(`Room "${room.name}" created successfully`);
       await refreshRooms();
@@ -52,18 +54,20 @@ const StudyRoomPage = () => {
   };
 
   const handleJoinRoom = async () => {
-    try {
-      if (joinCode.trim()) {
-        const room = await joinRoom(joinCode);
-        setJoinCode('');
-        toast.success(`Joined room: ${room.name}`);
-        await refreshRooms();
-      }
-    } catch (err) {
-      console.error('Error joining room:', err);
-      toast.error(err.response?.data?.error || 'Failed to join room. Check code and try again.');
+  try {
+    if (joinCode.trim()) {
+      const room = await joinRoom(joinCode);
+      setJoinCode('');
+      toast.success(`Joined room: ${room.name}`);
+
+      navigate('/join-success', { state: { roomName: room.name, roomCode: room.code } });
     }
-  };
+  } catch (err) {
+    console.error('Error joining room:', err);
+    toast.error(err.response?.data?.error || 'Failed to join room. Check code and try again.');
+  }
+};
+
 
   const handleStartPomodoroSession = async (roomId) => {
     try {
@@ -93,17 +97,22 @@ const StudyRoomPage = () => {
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedCode(text);
-    toast.success('Room code copied to clipboard');
+    toast.success('Room code copied');
     setTimeout(() => setCopiedCode(''), 2000);
   };
+
+  const filteredRooms = myRooms.filter(room => {
+    if (filterType === 'all') return true;
+    return room.type === filterType;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">My Study Rooms</h1>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+          <h1 className="text-3xl font-bold text-gray-900">My Study Rooms</h1>
           <button
             onClick={() => setIsCreateModalOpen(true)}
             className="flex items-center space-x-2 bg-gradient-to-r from-amber-600 to-teal-600 text-white px-4 py-2 rounded-lg font-medium hover:from-amber-700 hover:to-teal-700 transition-all"
@@ -113,7 +122,7 @@ const StudyRoomPage = () => {
           </button>
         </div>
 
-        <div className="mb-4 flex space-x-2">
+        <div className="mb-6 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <input
             type="text"
             value={joinCode}
@@ -129,16 +138,40 @@ const StudyRoomPage = () => {
           >
             Join Room
           </button>
+
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="border border-gray-300 px-4 py-2 rounded-lg"
+          >
+            <option value="all">All Rooms</option>
+            <option value="public">Public Rooms</option>
+            <option value="private">Private Rooms</option>
+          </select>
         </div>
 
-        {myRooms.length === 0 ? (
-          <p className="text-gray-600">You have no study rooms yet.</p>
+        {filteredRooms.length === 0 ? (
+          <p className="text-gray-600">No rooms found.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {myRooms.map((room) => (
-              <div key={room.id} className="border border-gray-200 p-4 rounded-lg bg-white shadow-sm">
-                <h3 className="font-semibold text-gray-900">{room.name}</h3>
-                <p className="text-sm text-gray-600 mb-2">Room Code: {room.code}</p>
+            {filteredRooms.map((room) => (
+              <div key={room.id} className="border border-gray-200 p-4 rounded-lg bg-white shadow hover:shadow-md transition">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-semibold text-gray-900">{room.name}</h3>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${room.type === 'public' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700'}`}>
+                    {room.type === 'public' ? 'Public' : 'Private'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+                  <span>Code: {room.code}</span>
+                  <button
+                    onClick={() => copyToClipboard(room.code)}
+                    className="text-amber-600 hover:text-amber-700"
+                    title="Copy Code"
+                  >
+                    {copiedCode === room.code ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => navigate(`/room/${room.id}`)}
@@ -150,7 +183,7 @@ const StudyRoomPage = () => {
                     onClick={() => handleStartPomodoroSession(room.id)}
                     className="bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-emerald-700"
                   >
-                    Start Pomodoro
+                    Pomodoro
                   </button>
                   {room.creatorId === user?.id && (
                     <button
@@ -186,6 +219,7 @@ const StudyRoomPage = () => {
                     setIsCreateModalOpen(false);
                     setRoomName('');
                     setRoomCode('');
+                    setRoomType('private');
                   }}
                   className="mt-4 bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700"
                 >
@@ -202,12 +236,21 @@ const StudyRoomPage = () => {
                   className="w-full border border-gray-300 px-4 py-2 rounded-lg"
                   required
                 />
+                <select
+                  value={roomType}
+                  onChange={(e) => setRoomType(e.target.value)}
+                  className="w-full border border-gray-300 px-4 py-2 rounded-lg"
+                >
+                  <option value="private">Private</option>
+                  <option value="public">Public</option>
+                </select>
                 <div className="flex space-x-2">
                   <button
                     type="button"
                     onClick={() => {
                       setIsCreateModalOpen(false);
                       setRoomName('');
+                      setRoomType('private');
                     }}
                     className="flex-1 border border-gray-300 py-2 rounded-lg"
                   >

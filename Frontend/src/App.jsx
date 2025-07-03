@@ -8,6 +8,12 @@ import NotesPage from './pages/NotesPage';
 import TasksPage from './pages/TasksPage';
 import CollaboratePage from './pages/CollaboratePage';
 import StudyRoomPage from './pages/StudyRoomPage';
+import DiscoverRooms from './pages/DiscoverRooms';
+import RoomPage from './pages/RoomPage';
+import JoinRoomSuccess from './pages/JoinRoomSuccess';
+import JoinRoomSuccessPageWrapper from './pages/JoinRoomSuccessPageWrapper';
+
+import ActiveStudyRoom from './pages/ActiveStudyRoom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -30,7 +36,11 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
         <Route path="/register" element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/dashboard" replace />} />
-
+        <Route path="/discover" element={<DiscoverRooms />} />
+        <Route path="/room/:id" element={<RoomPage />} />
+        <Route path="/study-room/:id" element={<ActiveStudyRoom />} />
+<Route path="/join-success" element={<JoinRoomSuccess/>} />
+<Route path="/join-success" element={<JoinRoomSuccessPageWrapper />} />
         <Route path="/dashboard" element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" replace />} />
         <Route path="/notes" element={isAuthenticated ? <NotesPage /> : <Navigate to="/login" replace />} />
         <Route path="/tasks" element={isAuthenticated ? <TasksPage /> : <Navigate to="/login" replace />} />
