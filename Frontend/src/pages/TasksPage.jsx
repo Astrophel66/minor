@@ -104,7 +104,7 @@ const TasksPage = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto p-8">
-        <h1 className="text-2xl font-bold mb-4">Your Tasks</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2"> My Tasks</h1>
 
         <form onSubmit={handleAddTask} className="mb-6 flex gap-2">
           <input
