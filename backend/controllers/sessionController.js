@@ -1,16 +1,15 @@
 const { Session } = require('../models');
 
-exports.startSession = async (req, res) => {
+const startSession = async (req, res) => {
   try {
     console.log('Request Body:', req.body);
     console.log('User:', req.user);
 
-    const { startTime, endTime, duration } = req.body;
+    const { startTime, endTime, duration, roomId } = req.body;
     const userId = req.user.id;
 
-    // Basic Validation
-    if (!startTime || !endTime || !duration) {
-      return res.status(400).json({ message: 'Start time, end time, and duration are required' });
+    if (!startTime || !endTime || !duration || !roomId) {
+      return res.status(400).json({ message: 'Start time, end time, duration, and roomId are required' });
     }
 
     const session = await Session.create({
@@ -28,7 +27,7 @@ exports.startSession = async (req, res) => {
   }
 };
 
-exports.getUserSessions = async (req, res) => {
+const getUserSessions = async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -42,4 +41,33 @@ exports.getUserSessions = async (req, res) => {
     console.error('Get sessions error:', err);
     res.status(500).json({ message: 'Server error' });
   }
+};
+
+const stopSession = async (req, res) => {
+  try {
+    const sessionId = req.params.id;
+    const userId = req.user.id;
+
+    const session = await Session.findOne({
+      where: { id: sessionId, UserId: userId }
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    session.endTime = new Date().toISOString();
+    await session.save();
+
+    res.json(session);
+  } catch (err) {
+    console.error('Error stopping session:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = {
+  startSession,
+  getUserSessions,
+  stopSession
 };

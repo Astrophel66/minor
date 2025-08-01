@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import { Plus, Users, Lock, Globe, Copy, Check, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createRoom, joinRoom, getMyRooms, deleteRoom } from '../services/roomService';
-import { startSession } from '../services/sessionService';
+import { startSession, getMySessions } from '../services/sessionService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 
@@ -16,6 +16,13 @@ const StudyRoomPage = () => {
   const [copiedCode, setCopiedCode] = useState('');
   const [myRooms, setMyRooms] = useState([]);
   const [filterType, setFilterType] = useState('all');
+  const [sessionHistory, setSessionHistory] = useState([]);
+
+  const [timer, setTimer] = useState(null);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [activeRoomId, setActiveRoomId] = useState(null);
+  const [durationModal, setDurationModal] = useState({ open: false, roomId: null });
+  const [pomodoroDuration, setPomodoroDuration] = useState(1);
 
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
@@ -26,7 +33,39 @@ const StudyRoomPage = () => {
       return;
     }
     refreshRooms();
+    fetchSessionHistory();
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    const savedTimer = JSON.parse(localStorage.getItem('pomodoroTimer'));
+    if (savedTimer && savedTimer.expiry && Date.now() < savedTimer.expiry) {
+      const remaining = Math.floor((savedTimer.expiry - Date.now()) / 1000);
+      setTimer(remaining);
+      setIsTimerRunning(true);
+      setActiveRoomId(savedTimer.roomId);
+    } else {
+      localStorage.removeItem('pomodoroTimer');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isTimerRunning) return;
+
+    if (timer <= 0) {
+      setIsTimerRunning(false);
+      setActiveRoomId(null);
+      localStorage.removeItem('pomodoroTimer');
+      toast.info('Pomodoro session ended!');
+      fetchSessionHistory();
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setTimer((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [isTimerRunning, timer]);
 
   const refreshRooms = async () => {
     try {
@@ -35,6 +74,16 @@ const StudyRoomPage = () => {
     } catch (err) {
       console.error('Error fetching rooms:', err);
       toast.error('Failed to load rooms');
+    }
+  };
+
+  const fetchSessionHistory = async () => {
+    try {
+      const sessions = await getMySessions();
+      setSessionHistory(sessions);
+    } catch (err) {
+      console.error('Error fetching history:', err);
+      toast.error('Failed to load history');
     }
   };
 
@@ -54,26 +103,39 @@ const StudyRoomPage = () => {
   };
 
   const handleJoinRoom = async () => {
-  try {
-    if (joinCode.trim()) {
-      const room = await joinRoom(joinCode);
-      setJoinCode('');
-      toast.success(`Joined room: ${room.name}`);
-
-      navigate('/join-success', { state: { roomName: room.name, roomCode: room.code } });
+    try {
+      if (joinCode.trim()) {
+        const room = await joinRoom(joinCode);
+        setJoinCode('');
+        toast.success(`Joined room: ${room.name}`);
+        navigate('/join-success', { state: { roomName: room.name, roomCode: room.code } });
+      }
+    } catch (err) {
+      console.error('Error joining room:', err);
+      toast.error(err.response?.data?.error || 'Failed to join room. Check code and try again.');
     }
-  } catch (err) {
-    console.error('Error joining room:', err);
-    toast.error(err.response?.data?.error || 'Failed to join room. Check code and try again.');
-  }
-};
+  };
 
-
-  const handleStartPomodoroSession = async (roomId) => {
+  const handleStartPomodoroSession = async () => {
     try {
       const now = new Date();
-      const later = new Date(now.getTime() + 25 * 60 * 1000);
-      await startSession(now.toISOString(), later.toISOString(), 25);
+      const later = new Date(now.getTime() + pomodoroDuration * 60 * 1000);
+
+      await startSession({
+        startTime: now.toISOString(),
+        endTime: later.toISOString(),
+        duration: pomodoroDuration,
+        roomId: durationModal.roomId,
+      });
+
+      const expiry = later.getTime();
+      localStorage.setItem('pomodoroTimer', JSON.stringify({ expiry, roomId: durationModal.roomId }));
+
+      setActiveRoomId(durationModal.roomId);
+      setTimer(pomodoroDuration * 60);
+      setIsTimerRunning(true);
+      setDurationModal({ open: false, roomId: null });
+
       toast.success('Pomodoro session started');
     } catch (err) {
       console.error(err);
@@ -101,16 +163,22 @@ const StudyRoomPage = () => {
     setTimeout(() => setCopiedCode(''), 2000);
   };
 
-  const filteredRooms = myRooms.filter(room => {
-    if (filterType === 'all') return true;
-    return room.type === filterType;
-  });
+  const filteredRooms = myRooms.filter((room) =>
+    filterType === 'all' ? true : room.type === filterType
+  );
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
       <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* Room Display */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
           <h1 className="text-3xl font-bold text-gray-900">My Study Rooms</h1>
           <button
@@ -138,7 +206,6 @@ const StudyRoomPage = () => {
           >
             Join Room
           </button>
-
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
@@ -155,7 +222,7 @@ const StudyRoomPage = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredRooms.map((room) => (
-              <div key={room.id} className="border border-gray-200 p-4 rounded-lg bg-white shadow hover:shadow-md transition">
+              <div key={room.id} className="border p-4 rounded-lg bg-white shadow hover:shadow-md transition">
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="font-semibold text-gray-900">{room.name}</h3>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded ${room.type === 'public' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700'}`}>
@@ -164,14 +231,17 @@ const StudyRoomPage = () => {
                 </div>
                 <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
                   <span>Code: {room.code}</span>
-                  <button
-                    onClick={() => copyToClipboard(room.code)}
-                    className="text-amber-600 hover:text-amber-700"
-                    title="Copy Code"
-                  >
+                  <button onClick={() => copyToClipboard(room.code)} className="text-amber-600 hover:text-amber-700">
                     {copiedCode === room.code ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
+
+                {activeRoomId === room.id && isTimerRunning && (
+                  <div className="mb-2 font-mono text-lg text-emerald-700">
+                    Pomodoro: {formatTime(timer)}
+                  </div>
+                )}
+
                 <div className="flex space-x-2">
                   <button
                     onClick={() => navigate(`/room/${room.id}`)}
@@ -180,7 +250,7 @@ const StudyRoomPage = () => {
                     Enter
                   </button>
                   <button
-                    onClick={() => handleStartPomodoroSession(room.id)}
+                    onClick={() => setDurationModal({ open: true, roomId: room.id })}
                     className="bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-emerald-700"
                   >
                     Pomodoro
@@ -189,7 +259,6 @@ const StudyRoomPage = () => {
                     <button
                       onClick={() => handleDeleteRoom(room.id)}
                       className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600"
-                      title="Delete Room"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -199,8 +268,32 @@ const StudyRoomPage = () => {
             ))}
           </div>
         )}
+
+        {/* Pomodoro History */}
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-2">Pomodoro History</h2>
+          {sessionHistory.length === 0 ? (
+            <p className="text-gray-500">No sessions yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {[...sessionHistory].reverse().map((s) => (
+                <li key={s.id} className="border border-gray-300 rounded-lg p-4 shadow-sm bg-white hover:shadow-md transition">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-amber-600 font-semibold text-lg">{s.duration} min</span>
+                    <span className="text-gray-500 text-xs font-mono">Room ID: {s.RoomId}</span>
+                  </div>
+                  <div className="text-gray-700 text-sm space-y-1">
+                    <div><strong>Start:</strong> {new Date(s.startTime).toLocaleTimeString()}</div>
+                    <div><strong>End:</strong> {new Date(s.endTime).toLocaleTimeString()}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
+      {/* Create Room Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
@@ -265,6 +358,37 @@ const StudyRoomPage = () => {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Pomodoro Duration Modal */}
+      {durationModal.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full space-y-4">
+            <h2 className="text-lg font-bold">Pomodoro Duration (minutes)</h2>
+            <input
+              type="number"
+              min={1}
+              max={60}
+              value={pomodoroDuration}
+              onChange={(e) => setPomodoroDuration(e.target.value)}
+              className="w-full border border-gray-300 px-4 py-2 rounded-lg"
+            />
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setDurationModal({ open: false, roomId: null })}
+                className="border border-gray-300 px-4 py-2 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStartPomodoroSession}
+                className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700"
+              >
+                Start
+              </button>
+            </div>
           </div>
         </div>
       )}

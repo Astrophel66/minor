@@ -1,5 +1,6 @@
 const { User, Room, Session } = require('../models');
-const { Op, fn, col, literal } = require('sequelize');
+const { fn, col } = require('sequelize');
+
 exports.getUserProfile = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
@@ -22,14 +23,17 @@ exports.getDashboardStats = async (req, res) => {
     const userId = req.user.id;
 
     const studyMinutes = await Session.sum('duration', { where: { UserId: userId } }) || 0;
-const studyHours = (studyMinutes / 60).toFixed(2);
+    const studyHours = (studyMinutes / 60).toFixed(2);
 
-    const activeRooms = await Room.count({
-      include: [{
-        association: 'Users',
-        where: { id: userId }
-      }]
-    });
+   const activeRooms = await Room.count({
+  include: [{
+    model: User,
+    association: 'Users',
+    where: { id: userId }
+  }]
+});
+
+
     const goalsMet = await Session.count({
       where: {
         UserId: userId,
@@ -39,10 +43,8 @@ const studyHours = (studyMinutes / 60).toFixed(2);
 
     const sessions = await Session.findAll({
       where: { UserId: userId },
-    attributes: [
-  [fn('DATE', col('startTime')), 'sessionDate']
-],
-group: [fn('DATE', col('startTime'))],
+      attributes: [[fn('DATE', col('startTime')), 'sessionDate']],
+      group: [fn('DATE', col('startTime'))],
       order: [[fn('DATE', col('startTime')), 'DESC']]
     });
 
@@ -53,7 +55,7 @@ group: [fn('DATE', col('startTime'))],
     for (let i = 0; i < sessionDates.length; i++) {
       const expectedDate = new Date(today);
       expectedDate.setDate(today.getDate() - i);
-      const formatted= expectedDate.toISOString().split('T')[0];
+      const formatted = expectedDate.toISOString().split('T')[0];
 
       if (sessionDates.includes(formatted)) streak++;
       else break;

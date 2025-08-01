@@ -25,7 +25,8 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   Room.associate = (models) => {
-    Room.belongsToMany(models.User, { through: 'RoomUsers' });
+    Room.belongsToMany(models.User, { through: 'UserRooms', as: 'users' });
+
   };
 
   return Room;

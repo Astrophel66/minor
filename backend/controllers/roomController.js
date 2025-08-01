@@ -22,12 +22,15 @@ exports.createRoom = async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     await room.addUser(user); 
+
     res.status(201).json(room);
+    
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.joinRoom = async (req, res) => {
   try {
